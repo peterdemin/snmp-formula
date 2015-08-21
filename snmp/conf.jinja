@@ -1,1 +1,21 @@
 {% set conf = salt['pillar.get']('snmp:conf', {}) %}
+
+{% set group_services = {} %}
+{% for group_info in salt['pillar.get']('cluster:cluster_members', {}).values() %}
+    {% do group_services.update(group_info.get('services', {})) %}
+{% endfor %}
+{% set service_names = group_services.keys() %}
+
+{% for service_name in service_names %}
+{% set conf = salt['pillar.get'](
+    service_name + ":snmp",
+    default=conf,
+    merge=True)
+%}
+{% endfor %}
+
+{% set conf = salt['pillar.get'](
+    "snmp:override",
+    default=conf,
+    merge=True)
+%}
